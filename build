@@ -5,7 +5,7 @@ LOCKFILE="$MAIN_DIR/.lock"
 BUILDS_DIR="$MAIN_DIR/builds"
 REPO_DIR="$MAIN_DIR/navio-core"
 HASH_FILE="$MAIN_DIR/hash.txt"
-GPG_KEY="4DC1A6D4CB76395724FB97DBA05B6DF4513EA050"
+GPG_KEY="5E542D3BDB5F4305762330B37A17AA0838680153"
 
 if [ -z "$GPG_KEY" ]; then
     echo "ERROR: GPG_KEY is not set. Export GPG_KEY to your key id/fingerprint before running." >&2
