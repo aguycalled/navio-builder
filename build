@@ -27,22 +27,26 @@ cd "$REPO_DIR"
 git fetch --all
 git checkout -f origin/master
 
-# ─── Extract version from configure.ac (only from define(...) lines) ─────────
-VERSION_MAJOR=$(sed -n 's/^define(_CLIENT_VERSION_MAJOR, *\([0-9]\+\)).*/\1/p' configure.ac)
-VERSION_MINOR=$(sed -n 's/^define(_CLIENT_VERSION_MINOR, *\([0-9]\+\)).*/\1/p' configure.ac)
-VERSION_BUILD=$(sed -n 's/^define(_CLIENT_VERSION_BUILD, *\([0-9]\+\)).*/\1/p' configure.ac)
-VERSION_RC=$(sed -n 's/^define(_CLIENT_VERSION_RC, *\([0-9]\+\)).*/\1/p' configure.ac)
-IS_RELEASE=$(sed -n 's/^define(_CLIENT_VERSION_IS_RELEASE, *\([^)]\+\)).*/\1/p' configure.ac)
+# ─── Extract version from CMake metadata ──────────────────────────────────────
+extract_cmake_var() {
+    local var_name="$1"
+    sed -nE "s/^[[:space:]]*set\\([[:space:]]*${var_name}[[:space:]]+\"?([^\" )]+)\"?.*/\\1/p" CMakeLists.txt | head -n1
+}
+
+VERSION_MAJOR=$(extract_cmake_var "CLIENT_VERSION_MAJOR")
+VERSION_MINOR=$(extract_cmake_var "CLIENT_VERSION_MINOR")
+VERSION_BUILD=$(extract_cmake_var "CLIENT_VERSION_BUILD")
+VERSION_RC=$(extract_cmake_var "CLIENT_VERSION_RC")
 
 if [ -z "$VERSION_MAJOR" ] || [ -z "$VERSION_MINOR" ] || [ -z "$VERSION_BUILD" ] || [ -z "$VERSION_RC" ]; then
-    echo "ERROR: Could not parse version from configure.ac" >&2
+    echo "ERROR: Could not parse version from CMakeLists.txt" >&2
     exit 1
 fi
 
-# Compose version string, e.g. 1.0.0-rc0 or 1.0.0
-VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUILD}-rc${VERSION_RC}"
-if [ "$IS_RELEASE" = "true" ]; then
-    VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUILD}"
+# Compose version string like CMake's CLIENT_VERSION_STRING
+VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_BUILD}"
+if [ "$VERSION_RC" -gt 0 ]; then
+    VERSION="${VERSION}rc${VERSION_RC}"
 fi
 
 echo "Using version: $VERSION"
